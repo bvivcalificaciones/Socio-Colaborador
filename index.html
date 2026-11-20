@@ -131,7 +131,19 @@
     });
 
     try {
-      await fetch(CONFIG.SCRIPT_URL, { method: "POST", mode: "no-cors", body: datos });
+      const resp = await fetch(CONFIG.SCRIPT_URL, { method: "POST", body: datos });
+      const { estado } = await resp.json();
+
+      if (estado === "duplicado") {
+        btn.disabled = false;
+        return mostrar('Ese DNI ya está registrado como socio. Si todavía no completaste el pago, <a href="' + CONFIG.MP_URL + '">hacelo acá</a>.', "error");
+      }
+      if (estado === "dni_invalido") {
+        btn.disabled = false;
+        return mostrar("Revisá el DNI: tienen que ser 7 u 8 números.", "error");
+      }
+      if (estado !== "ok") throw new Error(estado);
+
       mostrar('¡Listo! Te llevamos a Mercado Pago… Si no pasa nada, <a href="' + CONFIG.MP_URL + '">tocá acá</a>.', "ok");
       setTimeout(() => { window.location.href = CONFIG.MP_URL; }, 1200);
     } catch (err) {
